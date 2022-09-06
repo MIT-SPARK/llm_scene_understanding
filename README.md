@@ -35,5 +35,7 @@ We ran our zero-shot room-labelling approach on three real scene graphs created 
 - [Apartment](https://github.com/verityw/llm_scene_understanding/tree/main/real_dsg_vis)
 - [Office](https://htmlpreview.github.io/?https://github.com/verityw/llm_scene_understanding/blob/main/real_dsg_vis/uh2_office_vis.html)
 
+Alternatively, we provide all the rooms' query strings, ground truth labels, and inferred labels (here)[]. Note some rooms are omitted due to abnormal ground truth room labels or lack of objects contained within.
+
 ## Citation
 We have yet to publish this paper. Once it is up on Arxiv, we will update this section accordingly.
