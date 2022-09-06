@@ -1,3 +1,4 @@
+from cgi import test
 import os
 import pickle
 from load_matterport3d_dataset import Matterport3dDataset
@@ -226,6 +227,82 @@ class BuildingDataset(Dataset):
         return (self.query_embeddings[idx], self.labels[idx])
 
 
+class RoomDataset(Dataset):
+
+    def __init__(self,
+                 path_to_data,
+                 device="cuda",
+                 return_sentences=False,
+                 return_all_objs=True):
+        # Extract object, room, and bldg labels
+        dataset = Matterport3dDataset(
+            "./mp_data/nyuClass_matterport3d_w_edge.pkl")
+        labels, pl_labels = create_label_lists(dataset)
+        self.building_list, self.room_list, self.object_list = labels
+        self.building_list_pl, self.room_list_pl, self.object_list_pl = pl_labels
+
+        del dataset
+
+        self.device = device
+        self.return_sentences = return_sentences
+        self.return_all_objs = return_all_objs
+
+        # Initialize data attrs
+        self.query_embeddings = []
+        self.room_embeddings = []
+        self.labels = []
+        if self.return_sentences:
+            self.sentences = []
+        if self.return_all_objs:
+            self.all_objs = []
+
+        # Extract all suffixes
+        suffixes = []
+        for file in os.listdir(path_to_data):
+            if "labels_" in file:
+                suffixes.append(file[len("labels"):-len(".pt")])
+
+        for s in suffixes:
+            query_embeddings = torch.load(
+                os.path.join(path_to_data, "query_embeddings" + s + ".pt"))
+            room_embeddings = torch.load(
+                os.path.join(path_to_data, "room_embeddings" + s + ".pt"))
+            labels = torch.load(
+                os.path.join(path_to_data, "labels" + s + ".pt"))
+            if self.return_sentences:
+                with open(
+                        os.path.join(path_to_data,
+                                     "query_sentences" + s + ".pkl"),
+                        "rb") as fp:
+                    self.sentences += pickle.load(fp)
+            if self.return_all_objs:
+                with open(os.path.join(path_to_data, "all_objs" + s + ".pkl"),
+                          "rb") as fp:
+                    self.all_objs += pickle.load(fp)
+            self.query_embeddings.append(query_embeddings)
+            self.room_embeddings.append(room_embeddings)
+            self.labels.append(labels)
+
+        self.query_embeddings = torch.cat(self.query_embeddings).to(
+            self.device)
+        self.room_embeddings = torch.cat(self.room_embeddings).to(self.device)
+        self.labels = torch.cat(self.labels).to(self.device)
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        res = [
+            self.query_embeddings[idx], self.room_embeddings[idx],
+            self.labels[idx]
+        ]
+        if self.return_sentences:
+            res += [self.sentences[idx]]
+        if self.return_all_objs:
+            res += [self.all_objs[idx]]
+        return res
+
+
 def create_building_splits(path_to_data_dir, split_ratio, device, seed=0):
     path_to_embeddings = os.path.join(path_to_data_dir, "query_embeddings.pt")
     path_to_labels = os.path.join(path_to_data_dir, "labels.pt")
@@ -271,4 +348,25 @@ def create_comparison_building_splits(path_to_data_dir, device, seed=0):
         ds_list.append(ds)
 
     train_ds, val_ds, test_ds = ds_list
+    return train_ds, val_ds, test_ds
+
+
+def create_room_splits(path_to_data,
+                       device="cuda",
+                       return_sentences=False,
+                       return_all_objs=False):
+
+    train_ds = RoomDataset(os.path.join(path_to_data, "train"),
+                           device=device,
+                           return_sentences=return_sentences,
+                           return_all_objs=return_all_objs)
+    val_ds = RoomDataset(os.path.join(path_to_data, "val"),
+                         device=device,
+                         return_sentences=return_sentences,
+                         return_all_objs=return_all_objs)
+    test_ds = RoomDataset(os.path.join(path_to_data, "test"),
+                          device=device,
+                          return_sentences=return_sentences,
+                          return_all_objs=return_all_objs)
+
     return train_ds, val_ds, test_ds

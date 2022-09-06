@@ -165,18 +165,19 @@ def dynamic_lm_refinements(
     else:
         scoring_fxn = pll
 
-    dataset = Matterport3dDataset("./mp_data/" + label_set +
-                                  "_matterport3d_w_edge.pkl")
+    dataset = Matterport3dDataset(
+        "./mp_data/" + label_set + "_matterport3d_w_edge.pkl"
+    )  # TODO: Change back out of _502030 if needed
+
+    labels, pl_labels = create_label_lists(dataset)
+    building_list, room_list, object_list = labels
+    building_list_pl, room_list_pl, object_list_pl = pl_labels
 
     if use_test:
         dataset = dataset.get_test_set()
 
     # create data loader
     dataloader = DataLoader(dataset, batch_size=batch_size)
-
-    labels, pl_labels = create_label_lists(dataset)
-    building_list, room_list, object_list = labels
-    building_list_pl, room_list_pl, object_list_pl = pl_labels
 
     def construct_dist(objs, scoring_fxn):
         query_str = "A room containing "
@@ -195,13 +196,16 @@ def dynamic_lm_refinements(
 
         TEMP = []
         for room in room_list:
-            if room[0] in "aeiou" and room != "utility room":
-                TEMP_STR = query_str + "n "
+            if room in ["None", "balcony", "porch", "yard"]:
+                TEMP.append(-float("inf"))
             else:
-                TEMP_STR = query_str + " "
-            TEMP_STR += room + "."
-            score = scoring_fxn(TEMP_STR)
-            TEMP.append(score)
+                if room[0] in "aeiou" and room != "utility room":
+                    TEMP_STR = query_str + "n "
+                else:
+                    TEMP_STR = query_str + " "
+                TEMP_STR += room + "."
+                score = scoring_fxn(TEMP_STR)
+                TEMP.append(score)
         dist = torch.tensor(TEMP)
 
         if lm == "GPT-J":
@@ -219,7 +223,8 @@ def dynamic_lm_refinements(
             batch.y[batch.room_mask],
             batch.y[batch.object_mask],
         )
-        y_object = F.one_hot(label[-1]).type(torch.LongTensor)
+        y_object = F.one_hot(label[-1],
+                             len(object_list)).type(torch.LongTensor)
 
         # Each of these tensors is size [2, # edges of given type]. Name describes two nodes in each edge,
         # e.g. room_building means one is a room and other is building
@@ -288,31 +293,32 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(columns=["lm", "cooccurrencies", "accuracy"])
 
-    for label_set in ["nyuClass", "mpcat40"]:
-        for co in [True, False]:
-            for lm in lms:
-                print("label set:", label_set, "lm:", lm,
-                      "use cooccurrencies:", co)
-                acc, analysis_df = dynamic_lm_refinements(
-                    lm,
-                    use_cooccurencies=co,
-                    batch_size=82,
-                    k=3,
-                    use_test=False,
-                    label_set=label_set,
-                )
-                df2 = {
-                    "lm": lm,
-                    "cooccurrencies": co,
-                    "accuracy": acc,
-                }
-                print(df2)
-                df = df.append(df2, ignore_index=True)
+    for use_test in [True, False]:
+        for label_set in ["nyuClass", "mpcat40"]:
+            for co in [True, False]:
+                for lm in lms:
+                    print("label set:", label_set, "lm:", lm,
+                          "use cooccurrencies:", co, "use test:", use_test)
+                    acc, analysis_df = dynamic_lm_refinements(
+                        lm,
+                        use_cooccurencies=co,
+                        batch_size=82,
+                        k=3,
+                        use_test=use_test,
+                        label_set=label_set,
+                    )
+                    df2 = {
+                        "lm": lm,
+                        "cooccurrencies": co,
+                        "accuracy": acc,
+                    }
+                    print(df2)
+                    df = df.append(df2, ignore_index=True)
 
-                df.to_csv("./results/" + label_set + "_results_new.csv")
-                analysis_df.to_csv(
-                    os.path.join(
-                        "./analysis_logs",
-                        lm + "_co_" + str(co) + "_labelset_" + label_set +
-                        "_new.csv",
-                    ))
+                    df.to_csv("./results/" + label_set + "_results_new.csv")
+                    analysis_df.to_csv(
+                        os.path.join(
+                            "./analysis_logs",
+                            lm + "_co_" + str(co) + "_labelset_" + label_set +
+                            "_usetestset_" + str(use_test) + ".csv",
+                        ))

@@ -28,7 +28,11 @@ from transformers import (
 
 class BaselineRunner:
 
-    def __init__(self, device=None, verbose=False, label_set="mpcat40"):
+    def __init__(self,
+                 device=None,
+                 verbose=False,
+                 label_set="mpcat40",
+                 use_test=True):
 
         self.verbose = verbose
         self.device = (
@@ -40,6 +44,9 @@ class BaselineRunner:
         labels, pl_labels = create_label_lists(dataset)
         self.building_list, self.room_list, self.object_list = labels
         self.building_list_pl, self.room_list_pl, self.object_list_pl = pl_labels
+
+        if use_test:
+            dataset = dataset.get_test_set()
 
         if self.verbose:
             print("Using device:", self.device)
@@ -79,7 +86,8 @@ class BaselineRunner:
             batch.y[batch.room_mask],
             batch.y[batch.object_mask],
         )
-        y_object = F.one_hot(label[-1]).type(torch.LongTensor)
+        y_object = F.one_hot(label[-1],
+                             len(self.object_list)).type(torch.LongTensor)
         category_index_map = get_category_index_map(batch)
         object_room_edge_index = batch.object_room_edge_index
 
@@ -136,6 +144,7 @@ class BaselineRunner:
 
 if __name__ == "__main__":
     for label_set in ["mpcat40", "nyuClass"]:
-        print(label_set)
-        bl_runner = BaselineRunner(label_set=label_set)
-        bl_runner.extract_data(3)
+        for use_test in [True, False]:
+            print(label_set, "use test:", use_test)
+            bl_runner = BaselineRunner(label_set=label_set, use_test=use_test)
+            bl_runner.extract_data(3)
