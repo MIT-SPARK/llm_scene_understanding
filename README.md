@@ -6,7 +6,7 @@ William Chen, Siyi Hu, Rajat Talak, Luca Carlone
 1. [Overview](#overview)
 2. [Requirements](#requirements)
 3. [Running Code](#running-code)
-4. [Real Scene Graph Labelling Visualization](#real-scene-graph-labelling-visualization)
+4. [Real Scene Graph Labeling Visualization](#real-scene-graph-labeling-visualization)
 5. [Citation](#citation)
 
 ## Overview
@@ -35,9 +35,9 @@ After cloning this repo:
 - `python <ff/contrastive>_label_space_test.py` runs training on the mpcat40 label space dataset, then evaluates on the larger nyuClass label space dataset.
 - Some other utility functions and scripts are included as well, such as `compute_cooccurrencies.py`, which generates co-occurrency matrices (i.e. counting frequencies of room-object pairs)
 
-## Real Scene Graph Labelling Visualization
+## Real Scene Graph Labeling Visualization
 ![visualization](https://github.com/MIT-SPARK/llm_scene_understanding/blob/main/images/RealDSGExample.png)
-We ran our zero-shot room-labelling approach on three real scene graphs created using [Hydra](https://arxiv.org/abs/2201.13360). We provide the visualizations displaying the room bounding box floors, object nodes, and room nodes (which have ground truth and inferred labels attached as well). To open them, either download and open the HTML files found [here](https://github.com/MIT-SPARK/llm_scene_understanding/tree/main/real_dsg_vis) in a local browser or use the following links. Note that the latter option may take some time to load.
+We ran our zero-shot room-labeling approach on three real scene graphs created using [Hydra](https://arxiv.org/abs/2201.13360). We provide the visualizations displaying the room bounding box floors, object nodes, and room nodes (which have ground truth and inferred labels attached as well). To open them, either download and open the HTML files found [here](https://github.com/MIT-SPARK/llm_scene_understanding/tree/main/real_dsg_vis) in a local browser or use the following links. Note that the latter option may take some time to load.
 - [College Dorm](https://htmlpreview.github.io/?https://github.com/MIT-SPARK/llm_scene_understanding/blob/main/real_dsg_vis/sidpac_floor1_3_vis.html)
 - [Apartment](https://htmlpreview.github.io/?https://github.com/MIT-SPARK/llm_scene_understanding/blob/main/real_dsg_vis/uh2_apartment_vis.html)
 - [Office](https://htmlpreview.github.io/?https://github.com/MIT-SPARK/llm_scene_understanding/blob/main/real_dsg_vis/uh2_office_vis.html)
@@ -45,7 +45,7 @@ We ran our zero-shot room-labelling approach on three real scene graphs created 
 Alternatively, we provide all the rooms' query strings, ground truth labels, and inferred labels in the dropdown below. Note some rooms are omitted due to abnormal ground truth room labels or lack of objects contained within.
 
 <details>
-  <summary><b>Real Scene Graph Labelling Results</b></summary>
+  <summary><b>Real Scene Graph Labeling Results</b></summary>
   <br>
   <pre>
   <code>
