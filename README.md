@@ -2,6 +2,13 @@
 
 William Chen, Siyi Hu, Rajat Talak, Luca Carlone
 
+# Table of Contents
+1. [Overview](#overview)
+2. [Requirements](#requirements)
+3. [Running Code](#running-code)
+4. [Real Scene Graph Labelling Visualization](#real-scene-graph-labelling-visualization)
+5. [Citation](#citation)
+
 ## Overview
 This repo contains code for the paper _Leveraging Language Models for Robot 3D Scene Understanding_. We present several methods for leveraging language models for 3D scene understanding on scene graphs, like those produced by the [Hydra spatial perception system](https://arxiv.org/abs/2201.13360). We test our algorithms on scene graphs generated from the [Matterport3D semantic mesh dataset](https://niessner.github.io/Matterport/).
 
@@ -30,10 +37,102 @@ After cloning this repo:
 
 ## Real Scene Graph Labelling Visualization
 ![visualization](https://github.com/verityw/llm_scene_understanding/blob/main/images/RealDSGExample.png)
-We ran our zero-shot room-labelling approach on three real scene graphs created using the [Hydra](https://arxiv.org/abs/2201.13360) robot spatial perception system. We provide the visualizations displaying the room bounding box floors, object nodes, and room nodes (which have ground truth and inferred labels attached as well). To open them, either download and open the HTML files found [here](https://github.com/verityw/llm_scene_understanding/tree/main/real_dsg_vis) in a local browser or use the following links. Note that the latter option may take some time to load.
+We ran our zero-shot room-labelling approach on three real scene graphs created using [Hydra](https://arxiv.org/abs/2201.13360). We provide the visualizations displaying the room bounding box floors, object nodes, and room nodes (which have ground truth and inferred labels attached as well). To open them, either download and open the HTML files found [here](https://github.com/verityw/llm_scene_understanding/tree/main/real_dsg_vis) in a local browser or use the following links. Note that the latter option may take some time to load.
 - [College Dorm](https://htmlpreview.github.io/?https://github.com/verityw/llm_scene_understanding/blob/main/real_dsg_vis/sidpac_floor1_3_vis.html)
-- [Apartment](https://github.com/verityw/llm_scene_understanding/tree/main/real_dsg_vis)
+- [Apartment](https://htmlpreview.github.io/?https://github.com/verityw/llm_scene_understanding/blob/main/real_dsg_vis/uh2_apartment_vis.html)
 - [Office](https://htmlpreview.github.io/?https://github.com/verityw/llm_scene_understanding/blob/main/real_dsg_vis/uh2_office_vis.html)
+
+Alternatively, we provide all the rooms' query strings, ground truth labels, and inferred labels in the dropdown below. Note some rooms are omitted due to abnormal ground truth room labels or lack of objects contained within.
+
+<details>
+  <summary><b>Real Scene Graph Labelling Results</b></summary>
+  <br>
+  <pre>
+  <code>
+######################################################
+################## Starting: sidpac ##################
+######################################################
+--------- 0 ---------
+A room containing tables, chairs, and cabinets is called a
+predicted: kitchen - ground truth: lounge;seminar room
+--------- 4 ---------
+A room containing tables and cabinets is called a
+predicted: kitchen - ground truth: hallway
+--------- 5 ---------
+A room containing tables, chairs, and televisions is called a
+predicted: lounge - ground truth: lounge;game room
+--------- 7 ---------
+A room containing chairs is called a
+predicted: lounge - ground truth: hallway
+--------- 8 ---------
+A room containing stairs and railing is called a
+predicted: stairwell - ground truth: stairwell
+--------- 9 ---------
+A room containing stairs and railing is called a
+predicted: stairwell - ground truth: stairwell
+--------- 10 ---------
+A room containing stairs and railing is called a
+predicted: stairwell - ground truth: stairwell
+--------- 11 ---------
+A room containing stairs is called a
+predicted: stairwell - ground truth: stairwell
+--------- 13 ---------
+A room containing tables, chairs, and refrigerators is called a
+predicted: kitchen - ground truth: hallway
+--------- 14 ---------
+A room containing beds, tables, and chairs is called a
+predicted: bedroom - ground truth: bedroom
+--------- 15 ---------
+A room containing stoves, tables, and cabinets is called a
+predicted: kitchen - ground truth: kitchen
+--------- 17 ---------
+A room containing tables and chairs is called a
+predicted: lounge - ground truth: lounge;hallway
+--------- 18 ---------
+A room containing cabinets is called a
+predicted: bedroom - ground truth: hallway
+--------- 22 ---------
+A room containing stairs and railing is called a
+predicted: stairwell - ground truth: stairwell
+--------- 23 ---------
+A room containing stairs is called a
+predicted: stairwell - ground truth: stairwell
+--------- 24 ---------
+A room containing stairs and railing is called a
+predicted: stairwell - ground truth: stairwell
+#########################################################
+################## Starting: apartment ##################
+#########################################################
+--------- 0 ---------
+A room containing stairs, tables, and chairs is called a
+predicted: hallway - ground truth: dining room;kitchen
+--------- 1 ---------
+A room containing beds, chairs, and wardrobes is called a
+predicted: bedroom - ground truth: bedroom
+--------- 2 ---------
+A room containing tables, cabinets, and counters is called a
+predicted: kitchen - ground truth: office
+--------- 3 ---------
+A room containing beds, chairs, and mirrors is called a
+predicted: bedroom - ground truth: bedroom
+######################################################
+################## Starting: office ##################
+######################################################
+--------- 0 ---------
+A room containing tables, chairs, and wardrobes is called a
+predicted: bedroom - ground truth: hallway;office
+--------- 1 ---------
+A room containing computers, tables, and chairs is called a
+predicted: lounge - ground truth: office
+--------- 2 ---------
+A room containing tables, chairs, and wardrobes is called a
+predicted: bedroom - ground truth: office
+--------- 3 ---------
+A room containing tables and chairs is called a
+predicted: lounge - ground truth: conference room
+  </code>
+  </pre>
+</details>
 
 ## Citation
 We have yet to publish this paper. Once it is up on Arxiv, we will update this section accordingly.
