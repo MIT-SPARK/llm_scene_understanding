@@ -63,6 +63,7 @@ def train_job(lm, label_set, use_gt, epochs, batch_size, seed=0):
                 pred = ff_net(query_em)
                 loss = loss_fxn(pred, label)
 
+                optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 train_epoch_loss.append(loss.item())
@@ -155,10 +156,9 @@ if __name__ == "__main__":
                 val_acc_list.append(val_acc)
                 test_loss_list.append(test_loss)
                 test_acc_list.append(test_acc)
-
-    pickle.dump(train_losses_list, open("./ff_results/train_losses.pkl", "wb"))
+    """ pickle.dump(train_losses_list, open("./ff_results/train_losses.pkl", "wb"))
     pickle.dump(train_acc_list, open("./ff_results/train_acc.pkl", "wb"))
     pickle.dump(val_losses_list, open("./ff_results/val_losses.pkl", "wb"))
     pickle.dump(val_acc_list, open("./ff_results/val_acc.pkl", "wb"))
     pickle.dump(test_loss_list, open("./ff_results/test_loss.pkl", "wb"))
-    pickle.dump(test_acc_list, open("./ff_results/test_acc.pkl", "wb"))
+    pickle.dump(test_acc_list, open("./ff_results/test_acc.pkl", "wb")) """

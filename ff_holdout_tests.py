@@ -14,9 +14,14 @@ from dataset import FinetuningDataset
 from models import ContrastiveNet, FeedforwardNet
 
 
-def train_job(
-    lm, label_set, epochs, batch_size, holdout_objs, holdout_rooms, co_suffix="", seed=0
-):
+def train_job(lm,
+              label_set,
+              epochs,
+              batch_size,
+              holdout_objs,
+              holdout_rooms,
+              co_suffix="",
+              seed=0):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def ff_loss(pred, label):
@@ -25,8 +30,7 @@ def train_job(
     # Create datasets
     ds = FinetuningDataset(lm, label_set, co_suffix)
     train_ds, val_ds, test_ds, holdout_ds = ds.create_holdout_split(
-        0.4, 0.2, holdout_objs, holdout_rooms
-    )
+        0.4, 0.2, holdout_objs, holdout_rooms)
 
     # Create dataloaders
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
@@ -39,10 +43,14 @@ def train_job(
     ff_net = FeedforwardNet(1024, output_size)
     ff_net.to(device)
 
-    optimizer = torch.optim.Adam(ff_net.parameters(), lr=0.0001, weight_decay=0.001)
+    optimizer = torch.optim.Adam(ff_net.parameters(),
+                                 lr=0.0001,
+                                 weight_decay=0.001)
 
     loss_fxn = ff_loss
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.99)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
+                                                step_size=20,
+                                                gamma=0.99)
 
     train_losses = []
     val_losses = []
@@ -62,6 +70,7 @@ def train_job(
 
                 loss = loss_fxn(pred, label)
 
+                optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 train_epoch_loss.append(loss.item())
@@ -82,14 +91,12 @@ def train_job(
                     loss = loss_fxn(pred, label)
                     val_epoch_loss.append(loss.item())
 
-                    accuracy = ((torch.argmax(pred, dim=1) == label) * 1.0).mean()
+                    accuracy = ((torch.argmax(pred, dim=1) == label) *
+                                1.0).mean()
                     val_epoch_acc.append(accuracy)
                     if batch_idx % 100 == 0:
-                        desc = (
-                            f"{np.mean(np.array(train_epoch_loss)):6.4}"
-                            + ", "
-                            + f"{accuracy.item():6.4}"
-                        )
+                        desc = (f"{np.mean(np.array(train_epoch_loss)):6.4}" +
+                                ", " + f"{accuracy.item():6.4}")
                         pbar.set_description((desc).rjust(20))
             val_losses.append(torch.mean(torch.tensor(val_epoch_loss)))
             val_acc.append(torch.mean(torch.tensor(val_epoch_acc)))
@@ -106,7 +113,10 @@ def train_job(
             accuracy = ((torch.argmax(pred, dim=1) == label) * 1.0).mean()
             test_acc.append(accuracy)
 
-    holdout_loss, holdout_acc_dict = [], {term: [] for term in holdout_ds.holdout_terms}
+    holdout_loss, holdout_acc_dict = [], {
+        term: []
+        for term in holdout_ds.holdout_terms
+    }
     holdout_total_acc = []
     for batch_idx, (query_em, _, label, term) in enumerate(holdout_dl):
         with torch.no_grad():
@@ -142,7 +152,7 @@ if __name__ == "__main__":
     ], []
 
     print("Starting:", lm, label_set, "use_gt =", use_gt)
-    co_suffix = "" if use_gt else "_gpt_j_co"
+    co_suffix = "_useGT_True_502030" if use_gt else "_gpt_j_co"
 
     torch.manual_seed(0)
 
@@ -154,12 +164,16 @@ if __name__ == "__main__":
         test_loss,
         test_acc,
         holdout_acc_dict,
-    ) = train_job(
-        lm, label_set, 100, 512, holdout_objs, holdout_rooms, co_suffix=co_suffix
-    )
+    ) = train_job(lm,
+                  label_set,
+                  100,
+                  512,
+                  holdout_objs,
+                  holdout_rooms,
+                  co_suffix=co_suffix)
     for key in holdout_acc_dict.keys():
         print(key)
         print(torch.mean(torch.tensor(holdout_acc_dict[key])))
-    pickle.dump(
-        holdout_acc_dict, open("./ff_holdout_results/holdout_acc_dict.pkl", "wb")
-    )
+    exit()
+    pickle.dump(holdout_acc_dict,
+                open("./ff_holdout_results/holdout_acc_dict.pkl", "wb"))

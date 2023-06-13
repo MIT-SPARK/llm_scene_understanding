@@ -15,6 +15,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from model_utils import get_category_index_map
 import torch.nn.functional as F
+import torch.nn as nn
 from torch_scatter import scatter
 from transformers import (
     BertTokenizer,
@@ -32,6 +33,7 @@ from tqdm import tqdm
 from perplexity_measure import compute_object_norm_inv_ppl
 import pandas as pd
 import os
+import time
 
 
 #################################################################################
@@ -181,6 +183,7 @@ def dynamic_lm_refinements(
 
     def construct_dist(objs, scoring_fxn):
         query_str = "A room containing "
+
         names = []
         for ob in objs:
             names.append(object_list_pl[ob])
@@ -211,6 +214,64 @@ def dynamic_lm_refinements(
         if lm == "GPT-J":
             dist = dist.type(torch.DoubleTensor)
         return dist
+
+    loss_fxn = nn.CrossEntropyLoss()
+    """ def construct_dist(objs, scoring_fxn):
+        if label_set == "nyuClass":
+            few_shot_examples = "A room containing stoves, counters, and sinks is called a kitchen.\nA room containing doors, shelves, and hangers is called a closet.\n"
+        elif label_set == "mpcat40":
+            few_shot_examples = "A room containing appliances, counters, and sinks is called a kitchen.\nA room containing doors, shelves, and clothes is called a closet.\n"
+        with torch.no_grad():
+            # query_str = few_shot_examples + "A room containing "
+
+            query_str = "A room containing "
+
+            names = []
+            for ob in objs:
+                names.append(object_list_pl[ob])
+            if len(names) == 1:
+                query_str += names[0]
+            elif len(names) == 2:
+                query_str += names[0] + " and " + names[1]
+            else:
+                for name in names[:-1]:
+                    query_str += name + ", "
+                query_str += "and " + names[-1]
+            query_str += " is called"
+
+            prefix_ids = tokenizer([query_str],
+                                   return_tensors="pt").input_ids.to(device)
+
+            prefix_outputs = lm_model(prefix_ids)
+
+            TEMP = []
+            for room in room_list:
+                if room in ["None", "balcony", "porch", "yard"]:
+                    TEMP.append(-float("inf"))
+                    continue
+                article = " an " if room[
+                    0] in "aeiou" and room != "utility room" else " a "
+                suffix_str = article + room + "."
+                suffix_ids = tokenizer(
+                    [suffix_str], return_tensors="pt").input_ids.to(device)
+                suffix_outputs = lm_model(
+                    suffix_ids, past_key_values=prefix_outputs.past_key_values)
+
+                full_ids = torch.cat([prefix_ids, suffix_ids], dim=1)
+                full_logits = torch.cat(
+                    [prefix_outputs.logits, suffix_outputs.logits], dim=1)
+
+                shift_logits = full_logits[..., :-1, :].contiguous()
+                shift_labels = full_ids[..., 1:].contiguous()
+                loss = loss_fxn(shift_logits.view(-1, shift_logits.shape[-1]),
+                                shift_labels.view(-1))
+                TEMP.append(-loss)
+
+            dist = torch.tensor(TEMP)
+
+            if lm == "GPT-J":
+                dist = dist.type(torch.DoubleTensor)
+            return dist """
 
     batch = next(iter(dataloader))
 
@@ -255,6 +316,9 @@ def dynamic_lm_refinements(
             neighbor_dists = neighbor_dists.to(device)
             if len(neighbor_dists) == 0:
                 continue
+
+            start_time = time.time()
+
             scores = neighbor_dists * object_norm_inv_perplexity.reshape(
                 [1, -1])
 
@@ -270,6 +334,7 @@ def dynamic_lm_refinements(
             new_dist = ref_dist
 
             ref = torch.argmax(new_dist)
+            # print(time.time() - start_time)
             actual = label[1][i]
 
             if ref == actual:
@@ -289,11 +354,11 @@ def dynamic_lm_refinements(
 
 if __name__ == "__main__":
 
-    lms = ["GPT-J"]
+    lms = ["GPT-J"]  #["RoBERTa-large"]
 
     df = pd.DataFrame(columns=["lm", "cooccurrencies", "accuracy"])
 
-    for use_test in [True, False]:
+    for use_test in [False, True]:
         for label_set in ["nyuClass", "mpcat40"]:
             for co in [True, False]:
                 for lm in lms:
@@ -313,12 +378,14 @@ if __name__ == "__main__":
                         "accuracy": acc,
                     }
                     print(df2)
-                    df = df.append(df2, ignore_index=True)
+                    """ df = df.append(df2, ignore_index=True)
 
-                    df.to_csv("./results/" + label_set + "_results_new.csv")
+                    df.to_csv("./results/" + label_set +
+                              "_results_TestFewShot.csv")
                     analysis_df.to_csv(
                         os.path.join(
                             "./analysis_logs",
                             lm + "_co_" + str(co) + "_labelset_" + label_set +
-                            "_usetestset_" + str(use_test) + ".csv",
-                        ))
+                            "_usetestset_" + str(use_test) +
+                            "_TestFewShot.csv",
+                        )) """

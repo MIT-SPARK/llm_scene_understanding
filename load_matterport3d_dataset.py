@@ -23,7 +23,7 @@ class Matterport3dDataset:
 
         self.labels_dict = labels_dict
         self.train_val_test_split = train_val_test_split
-        self.name = 'Matterpor3d_full_graph'
+        self.name = 'Matterport3d_full_graph'
         self.__dataset = dataset_list
 
         if len(input_data) > 3:
